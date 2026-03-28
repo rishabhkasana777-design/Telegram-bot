@@ -44,11 +44,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """🔥 Northvale Capital — Private Trading Community
-
 📊 Northvale Capital is one of the fastest-growing private trading communities focused on Forex & Crypto.
-
 💼 By joining, you unlock powerful tools:
-
 📈 Advanced Signal System — Real-time CALL/PUT signals  
 ⚡ Fast Signal Delivery — Never miss opportunities  
 💰 Stable Income — Earn up to $500–$1000/day  
@@ -56,17 +53,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🏆 Exclusive VIP Access — Premium signals only  
 🌍 Private Trading Community — Connect with serious traders  
 🎯 Precision Entry Points — Accurate SL & targets  
-
 💎 Why choose us?
-
 ✅ Trusted by 10,000+ traders worldwide  
 ✅ High accuracy signals  
 ✅ Beginner-friendly system  
 ✅ Automated profit strategies  
 ✅ Daily winning opportunities  
-
 🚀 How to start:
-
 1️⃣ Register your account  
 2️⃣ Activate with minimum deposit  
 3️⃣ Submit proof  
@@ -77,13 +70,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 👇 Click below to continue
 """
 
-    await update.message.reply_text(
-        text,
+    await update.message.reply_photo(
+        photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
+        caption=text,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
+    # 🔥 Psychological push messages
     await asyncio.sleep(2)
-    await update.message.reply_text("⏳ Checking availability...")
+    await update.message.reply_text("⏳ Checking VIP slot availability...")
 
     await asyncio.sleep(2)
     await update.message.reply_text("⚠️ Only few VIP slots left today")
