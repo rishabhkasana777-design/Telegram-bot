@@ -72,7 +72,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 3️⃣ Submit proof / trader ID  
 4️⃣ Get VIP access  
 ⚠️ Limited VIP access — Not everyone gets approved  
-👤 Founder:Northvale.ai
+👤 Founder:@Northvale.ai
 📩 Instagram for support  
 
 👇 Click below to continue
