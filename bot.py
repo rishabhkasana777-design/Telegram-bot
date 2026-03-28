@@ -1,20 +1,21 @@
+
 import os
 import random
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    CallbackQueryHandler,
-    filters,
+    ApplicationBuilder, CommandHandler, MessageHandler,
+    CallbackQueryHandler, ContextTypes, filters
 )
 
 # 🔐 ENV VARIABLES (Railway)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = 7221013939
-REF_LINK = "YOUR_REF_LINK_HERE"
 
+# 👇 CHANGE THIS
+ADMIN_ID = 7221013939
+REF_LINK =  "https://u3.shortink.io/register?utm_campaign=826893&utm_source=affiliate&utm_medium=sr&a=WxLmRQigGoQehq&al=1745149&ac=rishabhkasana777&cid=949480&code=WELCOME50"
+
+# 🧠 DATA
 verified_users = set()
 user_stats = {}
 
@@ -24,8 +25,9 @@ pairs = [
     "BTC/USD", "ETH/USD", "LTC/USD"
 ]
 
-directions = ["CALL ⬆️", "PUT ⬇️"]
+directions = ["CALL 📈", "PUT 📉"]
 
+# 📊 SIGNAL GENERATOR
 def generate_signal():
     pair = random.choice(pairs)
     direction = random.choice(directions)
@@ -43,67 +45,80 @@ Confidence: {confidence}%
 
 # 🚀 START COMMAND
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.effective_message
+    if not message:
+        return
+
+    user_id = update.effective_user.id
+
     keyboard = [
-        [InlineKeyboardButton("📄 CREATE ACCOUNT", url=REF_LINK)],
-        [InlineKeyboardButton("✅ VERIFY ACCOUNT", callback_data="joined")],
-        [InlineKeyboardButton("📩 SUBMIT PROOF", callback_data="proof")]
+        [InlineKeyboardButton("🚀 Start Earning Now", url=REF_LINK)],
+        [InlineKeyboardButton("✅ Verify Account", callback_data="joined")],
+        [InlineKeyboardButton("📩 Submit Proof", callback_data="proof")]
     ]
 
     text = """🔥 Northvale Capital — Private Trading Community
 
-📊 AI-powered trading system
-⚡ Real-time market analysis
+📊 AI-powered trading system  
+⚡ Real-time CALL/PUT signals  
+💰 Earn up to $500–$1000/day  
 
-💼 Advanced signals
-🎯 Precision entries
-💎 VIP access
+⚠️ Limited VIP slots — Not everyone gets access  
 
-🚀 Built for serious traders
+👇 Complete steps below to unlock signals
 """
 
-    await update.message.reply_photo(
+    await message.reply_photo(
         photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
         caption=text,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-# 🔘 BUTTON HANDLER
+    # 🔥 LIVE FEEL
+    await asyncio.sleep(2)
+    await message.reply_text("📡 Connecting to server...")
+    await asyncio.sleep(2)
+    await message.reply_text("✅ System ready! Complete steps above")
+
+# 🎯 BUTTON HANDLER
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     if query.data == "joined":
-        await query.message.reply_text("🔒 Activation required to unlock VIP signals")
-    elif query.data == "proof":
-        await query.message.reply_text("📩 Send screenshot now")
+        await query.message.reply_text("🔒 Complete registration first using button above")
 
-# 📩 HANDLE PROOF
+    elif query.data == "proof":
+        await query.message.reply_text("📩 Send your deposit screenshot now")
+
+# 📸 HANDLE PROOF
 async def handle_proof(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
+    user_id = update.effective_user.id
 
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"Approve user:\n/approve {user_id}"
+        text=f"New user proof:\n/approve {user_id}"
     )
 
-    await update.message.reply_text("⏳ Waiting for approval")
+    await update.effective_message.reply_text("⏳ Waiting for admin approval")
 
 # ✅ APPROVE USER
 async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id != ADMIN_ID:
+    if update.effective_user.id != ADMIN_ID:
         return
 
     if not context.args:
-        await update.message.reply_text("❌ Use: /approve user_id")
+        await update.effective_message.reply_text("❌ Use: /approve user_id")
         return
 
     user_id = int(context.args[0])
+
     verified_users.add(user_id)
     user_stats[user_id] = {"win": 0, "loss": 0}
 
     await context.bot.send_message(
         chat_id=user_id,
-        text="✅ Access granted. Signals started."
+        text="✅ Access granted! Signals started 🔥"
     )
 
 # 📊 SIGNAL COMMAND
@@ -111,12 +126,12 @@ async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if user_id not in verified_users:
-        await update.message.reply_text("❌ Locked. Verify first.")
+        await update.effective_message.reply_text("❌ Locked. Verify first.")
         return
 
-    await update.message.reply_text(generate_signal())
+    await update.effective_message.reply_text(generate_signal())
 
-# 🤖 AUTO SIGNALS LOOP
+# 🤖 AUTO SIGNALS
 async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
     for user_id in verified_users:
         try:
@@ -128,13 +143,31 @@ async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=user_id,
                 text=generate_signal() +
-                     f"\n📊 W: {stats['win']} / L: {stats['loss']}"
+                f"\n📊 W: {stats['win']} / L: {stats['loss']}"
+            )
+        except:
+            pass
+
+# 💸 HYPE MESSAGES
+hype_messages = [
+    "💰 User just made $320 profit!",
+    "🔥 Signal hit! Big win!",
+    "📈 VIP member doubled account today!",
+    "⚡ Another winning trade!",
+]
+
+async def auto_hype(context: ContextTypes.DEFAULT_TYPE):
+    for user_id in verified_users:
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=random.choice(hype_messages)
             )
         except:
             pass
 
 # 🚀 MAIN APP
-app = Application.builder().token(BOT_TOKEN).build()
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("signal", signal))
@@ -142,8 +175,9 @@ app.add_handler(CommandHandler("approve", approve))
 app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
 
-# ⏱ AUTO JOB (every 60 sec)
-app.job_queue.run_repeating(auto_signals, interval=60, first=10)
+# ⏱ AUTO JOBS
+app.job_queue.run_repeating(auto_signals, interval=120, first=20)
+app.job_queue.run_repeating(auto_hype, interval=180, first=30)
 
-print("Bot running...")
+print("Bot running... 🚀")
 app.run_polling()
