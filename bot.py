@@ -1,3 +1,4 @@
+
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -20,7 +21,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🚀 Launching soon – limited access"
     )
 
-    await update.message.reply_photo(
+    await update.effective_message.reply_photo(
         photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
         caption=caption,
         reply_markup=InlineKeyboardMarkup(keyboard)
