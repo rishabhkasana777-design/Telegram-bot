@@ -1,304 +1,264 @@
 import os
-import random
 import asyncio
+import random
+import requests
+import pandas as pd
+from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, ContextTypes,
     CallbackQueryHandler, MessageHandler, filters
 )
+from ta.trend import EMAIndicator
+from ta.momentum import RSIIndicator
 
 # ================= CONFIG =================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7221013939
+API_KEY = "YOUR_ALPHA_VANTAGE_KEY"
 
-REF_LINK = "https://u3.shortink.io/register?utm_campaign=826893&utm_source=affiliate&utm_medium=sr&a=WxLmRQigGoQehq&al=1745149&ac=rishabhkasana777&cid=949480&code=WELCOME50"
+INTRO_IMAGE = "https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png"
+SIGNAL_IMAGE = "https://img.sanishtech.com/u/1c0dc9fca14a1e2500306231240d93db.jpg"
 
-# ================= STORAGE =================
-verified_users = set()
-user_stats = {}
-waiting_for_id = set()
-user_status = {}  # joined / deposited / verified
-user_data_store = {}  # name + trader id
-
-pairs = [
-    "EUR/USD OTC", "GBP/USD OTC", "USD/JPY OTC",
-    "AUD/USD OTC", "EUR/GBP OTC",
-    "BTC/USD", "ETH/USD", "LTC/USD"
+ALLOWED_PAIRS = [
+    "EURUSD","GBPUSD","AUDUSD",
+    "EURGBP","EURAUD","EURCAD","EURCHF",
+    "GBPAUD","GBPCAD","GBPCHF",
+    "USDJPY","USDCHF","USDCAD",
+    "AUDJPY","AUDCAD","AUDCHF",
+    "CADJPY","CADCHF",
+    "CHFJPY","EURJPY","GBPJPY"
 ]
 
-directions = ["CALL 📈", "PUT 📉"]
+verified_users = set()
+waiting_for_id = set()
+user_data = {}
 
-# ================= SIGNAL =================
-def generate_signal():
-    pair = random.choice(pairs)
-    direction = random.choice(directions)
-    confidence = random.randint(80, 95)
-
-    return f"""📊 SIGNAL
-
-Pair: {pair}
-Direction: {direction}
-Expiry: 1 min
-Confidence: {confidence}%
-
-⚡ Enter now!
-"""
+# ================= SESSION FILTER =================
+def is_trading_time():
+    hour = datetime.utcnow().hour
+    return 6 <= hour <= 20  # London + NY session
 
 # ================= START =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.effective_message
-    if not message:
-        return
-
-    user_id = message.chat.id
-    user_status[user_id] = "joined"
 
     keyboard = [
-        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url=REF_LINK)],
-        [InlineKeyboardButton("🆔 SUBMIT TRADER ID", callback_data="trader_id")],
+        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url="https://your-link.com")],
+        [InlineKeyboardButton("🆔 SUBMIT TRADER ID", callback_data="id")],
         [InlineKeyboardButton("📩 SUBMIT PROOF", callback_data="proof")]
     ]
 
     text = """🔥 Northvale Capital — Private Trading Community
-📊 AI-based Forex & Crypto trading system
-💼 Features:
-📈 Advanced signals   
-💰 Potential income $500–$1000/day  
+
+📊 AI Forex Signals (5M Sniper)
+
+💼 What you get:
+📈 High accuracy  
+⚡ Fast execution  
+💰 $500–$1000/day potential  
 
 🚀 Steps:
-1️⃣ Create account  
+1️⃣ Register  
 2️⃣ Deposit $10–$50  
 3️⃣ Submit proof  
-4️⃣ Get VIP access  
-⚠️ Limited slots   
+4️⃣ Get VIP  
 
-👇 Continue below
-"""
+⚠️ Limited VIP access"""
 
-    await message.reply_photo(
-        photo="https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png",
+    await update.message.reply_photo(
+        photo=INTRO_IMAGE,
         caption=text,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-    # VIP urgency
     await asyncio.sleep(2)
-    await message.reply_text("⏳ Checking VIP availability...")
-    await asyncio.sleep(2)
-    await message.reply_text("📊 Scanning traders...")
+    await update.message.reply_text("⏳ Checking VIP availability...")
+
     await asyncio.sleep(2)
     slots = random.randint(5, 12)
-    await message.reply_text(f"⚠️ Only {slots} VIP slots remaining")
-    await asyncio.sleep(2)
-    await message.reply_text("🚀 Complete steps now")
+    await update.message.reply_text(f"⚠️ Only {slots} VIP slots left")
 
 # ================= BUTTON =================
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    user_id = query.from_user.id
-
-    if query.data == "trader_id":
-        waiting_for_id.add(user_id)
-        await query.message.reply_text("🆔 Send your Trader ID")
+    if query.data == "id":
+        waiting_for_id.add(query.from_user.id)
+        await query.message.reply_text("Send Trader ID")
 
     elif query.data == "proof":
-        await query.message.reply_text(
-            "📩 Send deposit screenshot\n\n"
-            "💰 Required: $10–$50"
-        )
+        await query.message.reply_text("Send deposit screenshot")
 
 # ================= TRADER ID =================
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_id = user.id
 
-    if user_id not in waiting_for_id:
+    if user.id not in waiting_for_id:
         return
 
-    trader_id = update.effective_message.text
-    waiting_for_id.remove(user_id)
-
-    user_data_store[user_id] = {
-        "name": user.first_name,
-        "trader_id": trader_id
-    }
+    waiting_for_id.remove(user.id)
+    user_data[user.id] = update.message.text
 
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"""🆔 TRADER ID
+        text=f"""🆔 Trader ID
 
-👤 Name: {user.first_name}
-🆔 User ID: {user_id}
-💼 Trader ID: {trader_id}"""
+👤 {user.first_name}
+🆔 {user.id}
+💼 {update.message.text}"""
     )
-
-    await update.effective_message.reply_text("⏳ ID submitted. Now send proof.")
 
 # ================= PROOF =================
 async def handle_proof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_id = user.id
 
-    user_status[user_id] = "deposited"
-
-    data = user_data_store.get(user_id, {})
-    name = data.get("name", user.first_name)
-    trader_id = data.get("trader_id", "Not provided")
-
-    keyboard = [
-        [
-            InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user_id}"),
-            InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user_id}")
-        ]
-    ]
-
-    caption = f"""📩 DEPOSIT PROOF
-
-👤 Name: {name}
-🆔 User ID: {user_id}
-💼 Trader ID: {trader_id}
-
-Choose:"""
+    keyboard = [[
+        InlineKeyboardButton("✅ Approve", callback_data=f"a_{user.id}"),
+        InlineKeyboardButton("❌ Reject", callback_data=f"r_{user.id}")
+    ]]
 
     await context.bot.send_photo(
         chat_id=ADMIN_ID,
         photo=update.message.photo[-1].file_id,
-        caption=caption,
+        caption=f"Proof from {user.first_name}",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-    await update.message.reply_text("⏳ Waiting for approval")
-
-# ================= ADMIN ACTION =================
-async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ================= ADMIN =================
+async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     if query.from_user.id != ADMIN_ID:
         return
 
-    data = query.data
+    user_id = int(query.data.split("_")[1])
 
-    if data.startswith("approve_"):
-        user_id = int(data.split("_")[1])
-
+    if query.data.startswith("a_"):
         verified_users.add(user_id)
-        user_stats[user_id] = {"win": 0, "loss": 0}
-        user_status[user_id] = "verified"
+        await context.bot.send_message(user_id, "✅ VIP Activated")
 
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="✅ Approved! Signals unlocked 🔥"
-        )
+    else:
+        await context.bot.send_message(user_id, "❌ Rejected")
 
-        await query.edit_message_caption("✅ APPROVED")
+# ================= ANALYSIS =================
+def analyze_pair(pair):
 
-    elif data.startswith("reject_"):
-        user_id = int(data.split("_")[1])
+    if datetime.utcnow().weekday() >= 5:
+        return None
 
-        user_status[user_id] = "joined"
+    if not is_trading_time():
+        return None
 
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="❌ Rejected. Deposit properly and resend proof."
-        )
+    try:
+        url = "https://www.alphavantage.co/query"
+        params = {
+            "function": "FX_INTRADAY",
+            "from_symbol": pair[:3],
+            "to_symbol": pair[3:],
+            "interval": "5min",
+            "apikey": API_KEY
+        }
 
-        await query.edit_message_caption("❌ REJECTED")
+        data = requests.get(url, params=params).json()
 
-# ================= SIGNAL =================
+        key = "Time Series FX (5min)"
+        if key not in data:
+            return None
+
+        candles = list(data[key].values())
+
+        closes = [float(c["4. close"]) for c in candles]
+        highs = [float(c["2. high"]) for c in candles]
+        lows = [float(c["3. low"]) for c in candles]
+
+        df = pd.DataFrame(closes, columns=["close"])
+
+        ema25 = EMAIndicator(df["close"], 25).ema_indicator().iloc[-1]
+        ema50 = EMAIndicator(df["close"], 50).ema_indicator().iloc[-1]
+        rsi = RSIIndicator(df["close"]).rsi().iloc[-1]
+
+        price = closes[-1]
+        support = min(lows[-20:])
+        resistance = max(highs[-20:])
+
+        if abs(price - ema25) < 0.0005:
+            return (pair, "REVERSAL", "EMA25", 88)
+
+        if price > resistance and price > ema50 and rsi < 70:
+            return (pair, "CALL 📈", "BREAKOUT", 92)
+
+        if price < support and price < ema50 and rsi > 30:
+            return (pair, "PUT 📉", "BREAKDOWN", 92)
+
+        return None
+
+    except:
+        return None
+
+# ================= AUTO SCANNER =================
+async def auto_scan(context: ContextTypes.DEFAULT_TYPE):
+
+    for pair in ALLOWED_PAIRS:
+        result = analyze_pair(pair)
+
+        if result:
+            pair, direction, setup, conf = result
+
+            msg = f"""📊 VIP SIGNAL
+
+Pair: {pair}
+Timeframe: 5M
+
+Direction: {direction}
+Setup: {setup}
+
+📈 Confidence: {conf}%
+
+⚡ High Probability"""
+
+            for user in verified_users:
+                try:
+                    await context.bot.send_photo(
+                        chat_id=user,
+                        photo=SIGNAL_IMAGE,
+                        caption=msg
+                    )
+                except:
+                    pass
+
+            break  # only BEST signal
+
+# ================= MANUAL =================
 async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
 
-    if user_id not in verified_users:
-        await update.message.reply_text("❌ Access denied")
+    if update.effective_user.id not in verified_users:
+        await update.message.reply_text("No access")
         return
 
-    await update.message.reply_text(generate_signal())
+    for pair in ALLOWED_PAIRS:
+        result = analyze_pair(pair)
+        if result:
+            await update.message.reply_text(f"Best pair: {pair}")
+            return
 
-# ================= AUTO SIGNAL =================
-async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
-    for user_id in verified_users:
-        try:
-            result = random.choice(["win", "loss"])
-            user_stats[user_id][result] += 1
-            stats = user_stats[user_id]
+    await update.message.reply_text("No high probability trade")
 
-            await context.bot.send_message(
-                chat_id=user_id,
-                text=generate_signal() +
-                f"\n📊 W: {stats['win']} / L: {stats['loss']}"
-            )
-        except:
-            pass
-
-# ================= PROFIT FEED =================
-async def live_profit_feed(context: ContextTypes.DEFAULT_TYPE):
-    msgs = [
-        "💰 User made $90",
-        "📈 Big win!",
-        "🔥 Profit booked",
-        "⚡ Signal hit"
-    ]
-
-    for user_id in user_status:
-        try:
-            await context.bot.send_message(
-                chat_id=user_id,
-                text=random.choice(msgs)
-            )
-        except:
-            pass
-
-# ================= REMINDER =================
-async def reminder(context: ContextTypes.DEFAULT_TYPE):
-    for user_id, status in user_status.items():
-        try:
-            if status == "joined":
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text="⚠️ Deposit pending ($10–$50)\nComplete now"
-                )
-            elif status == "deposited":
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text="⏳ Under review..."
-                )
-        except:
-            pass
-
-# ================= STATS =================
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    total = len(user_status)
-    dep = len([u for u in user_status if user_status[u] == "deposited"])
-    ver = len([u for u in user_status if user_status[u] == "verified"])
-
-    await update.message.reply_text(
-        f"Users: {total}\nDeposited: {dep}\nVerified: {ver}"
-    )
-
-# ================= APP =================
+# ================= RUN =================
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("signal", signal))
-app.add_handler(CommandHandler("stats", stats))
 
-# IMPORTANT ORDER
-app.add_handler(CallbackQueryHandler(admin_decision, pattern="^(approve_|reject_)"))
-app.add_handler(CallbackQueryHandler(button_handler))
+app.add_handler(CallbackQueryHandler(admin, pattern="^(a_|r_)"))
+app.add_handler(CallbackQueryHandler(button))
 
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+app.add_handler(MessageHandler(filters.TEXT, handle_text))
 app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
 
-# JOBS
-app.job_queue.run_repeating(auto_signals, interval=120, first=20)
-app.job_queue.run_repeating(live_profit_feed, interval=180, first=30)
-app.job_queue.run_repeating(reminder, interval=600, first=60)
+# 🔥 AUTO SCANNER EVERY 5 MIN
+app.job_queue.run_repeating(auto_scan, interval=300, first=60)
 
 print("Bot running 🚀")
 app.run_polling()
