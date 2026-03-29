@@ -257,8 +257,9 @@ app.add_handler(CallbackQueryHandler(button))
 app.add_handler(MessageHandler(filters.TEXT, handle_text))
 app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
 
-# 🔥 AUTO SCANNER EVERY 5 MIN
-app.job_queue.run_repeating(auto_scan, interval=300, first=60)
+# 🔥 AUTO SCANNER EVERY 5 minutes 
+if app.job_queue:
+    app.job_queue.run_repeating(auto_scan, interval=300, first=60)
 
 print("Bot running 🚀")
 app.run_polling()
