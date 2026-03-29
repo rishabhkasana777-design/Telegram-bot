@@ -59,7 +59,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = """🔥 Northvale Capital — Private Trading Community
 
 📊 One of the fastest-growing AI trading communities in Forex & Crypto.
-
 💼 What you get:
 📈 Advanced Signal System  
 ⚡ Fast execution  
@@ -67,19 +66,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🤖 AI-assisted trading  
 🏆 Exclusive VIP access  
 🎯 Accurate entry points  
-
 💎 Why choose us?
 ✅ High accuracy  
 ✅ Beginner-friendly  
 ✅ Daily opportunities  
-
 🚀 How to start:
 1️⃣ Register account  
 2️⃣ Deposit $10–$50  
 3️⃣ Submit proof  
 4️⃣ Get VIP access  
 ⚠️ Limited VIP access  
-
 👇 Click below to continue
 """
 
