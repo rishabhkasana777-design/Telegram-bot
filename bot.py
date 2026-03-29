@@ -50,14 +50,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = """🔥 Northvale Capital — Private Trading Community
 
-📊 AI Forex Signals (5M Sniper)
-🔥 Northvale Capital — Private Trading Community
-
+📊 AI Forex | Binary Signals
 📊 One of the fastest-growing AI trading communities in Forex & Crypto.
 💼 What you get:
 📈 Advanced Signal System  
-💰 Potential income: $500–$1000/day  
-🤖 AI-assisted trading  
+💰 Potential income:$500–$1000/day  
 🏆 Exclusive VIP access  
 🎯 Accurate entry points  
 💎 Why choose us?
