@@ -43,7 +43,7 @@ def is_trading_time():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
-        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url="https://u3.shortink.io/smart/WxLmRQigGoQehq")],
+        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url="https://u3.shortink.io/register?utm_campaign=826893&utm_source=affiliate&utm_medium=sr&a=WxLmRQigGoQehq&al=1745149&ac=rishabhkasana777&cid=949480&code=WELCOME50")],
         [InlineKeyboardButton("🆔 SUBMIT TRADER ID", callback_data="id")],
         [InlineKeyboardButton("📩 SUBMIT PROOF", callback_data="proof")]
     ]
