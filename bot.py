@@ -50,22 +50,33 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = """🔥 Northvale Capital — Private Trading Community
 
-📊 AI Forex | Binary Signals
 📊 One of the fastest-growing AI trading communities in Forex & Crypto.
 💼 What you get:
-📈 Advanced Signal System  
-💰 Potential income:$500–$1000/day  
+📈 Advanced Signal System 
+💰 Potential income:$1000/day  
 🏆 Exclusive VIP access  
 🎯 Accurate entry points  
 💎 Why choose us?
-✅ High accuracy  
-✅ Beginner-friendly  
-✅ Daily opportunities  
+✅ High accuracy   
 🚀 How to start:
 1️⃣ Register account  
-2️⃣ Deposit $10–$50  
-3️⃣ Submit proof  
-4️⃣ Get VIP access 
+2️⃣ Deposit $10–$50   
+🚫 We DO NOT use OTC pairs  
+✅ We trade only REAL Forex market pairs for higher accuracy & reliability  
+🧠 Our strategy is not random — it’s built on advanced trading concepts:
+💡 Smart Money Concepts (SMC)  
+💡 Fair Value Gaps (FVG)  
+💡 Liquidity Trap Detection  
+💡 Support & Resistance Zones  
+💡 Breakout + Reversal Confirmations  
+💡 EMA 25 / 50 Reaction Strategy  
+📈 Multi-layer confirmation system ensures:
+✔️ High probability entries  
+✔️ Low risk setups  
+✔️ Precision timing (5M sniper trades)  
+⚡ We don’t spam signals  
+🎯 Only the BEST setups are sent  
+💰 Designed for serious traders who want consistency — not luck  
 ⚠️ Limited VIP access"""
 
     await update.message.reply_photo(
