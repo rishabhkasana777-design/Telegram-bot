@@ -7,15 +7,18 @@ from telegram.ext import (
     CallbackQueryHandler, MessageHandler, filters
 )
 
+# ================= CONFIG =================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7221013939
 
 REF_LINK = "https://u3.shortink.io/register?utm_campaign=826893&utm_source=affiliate&utm_medium=sr&a=WxLmRQigGoQehq&al=1745149&ac=rishabhkasana777&cid=949480&code=WELCOME50"
 
+# ================= STORAGE =================
 verified_users = set()
 user_stats = {}
 waiting_for_id = set()
-user_status = {}  # new, joined, deposited, verified
+user_status = {}  # joined / deposited / verified
+user_data_store = {}  # name + trader id
 
 pairs = [
     "EUR/USD OTC", "GBP/USD OTC", "USD/JPY OTC",
@@ -25,7 +28,7 @@ pairs = [
 
 directions = ["CALL 📈", "PUT 📉"]
 
-# 📊 SIGNAL GENERATOR
+# ================= SIGNAL =================
 def generate_signal():
     pair = random.choice(pairs)
     direction = random.choice(directions)
@@ -41,7 +44,7 @@ Confidence: {confidence}%
 ⚡ Enter now!
 """
 
-# 🚀 START
+# ================= START =================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.effective_message
     if not message:
@@ -57,26 +60,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """🔥 Northvale Capital — Private Trading Community
+📊 AI-based Forex & Crypto trading system
+💼 Features:
+📈 Advanced signals   
+💰 Potential income $500–$1000/day  
 
-📊 One of the fastest-growing AI trading communities in Forex & Crypto.
-💼 What you get:
-📈 Advanced Signal System  
-⚡ Fast execution  
-💰 Potential income: $500–$1000/day  
-🤖 AI-assisted trading  
-🏆 Exclusive VIP access  
-🎯 Accurate entry points  
-💎 Why choose us?
-✅ High accuracy  
-✅ Beginner-friendly  
-✅ Daily opportunities  
-🚀 How to start:
-1️⃣ Register account  
+🚀 Steps:
+1️⃣ Create account  
 2️⃣ Deposit $10–$50  
 3️⃣ Submit proof  
 4️⃣ Get VIP access  
-⚠️ Limited VIP access  
-👇 Click below to continue
+⚠️ Limited slots   
+
+👇 Continue below
 """
 
     await message.reply_photo(
@@ -85,21 +81,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-    # VIP urgency flow
+    # VIP urgency
     await asyncio.sleep(2)
     await message.reply_text("⏳ Checking VIP availability...")
-
     await asyncio.sleep(2)
-    await message.reply_text("📊 Scanning active traders...")
-
+    await message.reply_text("📊 Scanning traders...")
     await asyncio.sleep(2)
     slots = random.randint(5, 12)
-    await message.reply_text(f"⚠️ Only {slots} VIP slots remaining — filling fast")
-
+    await message.reply_text(f"⚠️ Only {slots} VIP slots remaining")
     await asyncio.sleep(2)
-    await message.reply_text("🚀 Complete steps now to secure your access")
+    await message.reply_text("🚀 Complete steps now")
 
-# 🔘 BUTTON HANDLER
+# ================= BUTTON =================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -108,18 +101,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == "trader_id":
         waiting_for_id.add(user_id)
-        await query.message.reply_text("🆔 Send your Pocket Option Trader ID")
+        await query.message.reply_text("🆔 Send your Trader ID")
 
     elif query.data == "proof":
         await query.message.reply_text(
-            "📩 Send your deposit screenshot\n\n"
-            "💰 Minimum: $10 - $50\n"
-            "⚠️ Without deposit, access will NOT be granted"
+            "📩 Send deposit screenshot\n\n"
+            "💰 Required: $10–$50"
         )
 
-# 🆔 HANDLE TRADER ID
+# ================= TRADER ID =================
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+    user = update.effective_user
+    user_id = user.id
 
     if user_id not in waiting_for_id:
         return
@@ -127,19 +120,32 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     trader_id = update.effective_message.text
     waiting_for_id.remove(user_id)
 
+    user_data_store[user_id] = {
+        "name": user.first_name,
+        "trader_id": trader_id
+    }
+
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"🆔 Trader ID\nUser: {user_id}\nID: {trader_id}\n\n/approve {user_id}"
+        text=f"""🆔 TRADER ID
+
+👤 Name: {user.first_name}
+🆔 User ID: {user_id}
+💼 Trader ID: {trader_id}"""
     )
 
-    await update.effective_message.reply_text("⏳ Waiting for verification")
+    await update.effective_message.reply_text("⏳ ID submitted. Now send proof.")
 
-# 📸 HANDLE PROOF
+# ================= PROOF =================
 async def handle_proof(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
 
     user_status[user_id] = "deposited"
+
+    data = user_data_store.get(user_id, {})
+    name = data.get("name", user.first_name)
+    trader_id = data.get("trader_id", "Not provided")
 
     keyboard = [
         [
@@ -148,12 +154,13 @@ async def handle_proof(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ]
 
-    caption = f"""📩 Deposit Proof Submitted
+    caption = f"""📩 DEPOSIT PROOF
 
-👤 User: {user_id}
-📛 Name: {user.first_name}
+👤 Name: {name}
+🆔 User ID: {user_id}
+💼 Trader ID: {trader_id}
 
-Choose action:"""
+Choose:"""
 
     await context.bot.send_photo(
         chat_id=ADMIN_ID,
@@ -162,9 +169,9 @@ Choose action:"""
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-    await update.message.reply_text("⏳ Proof received. Waiting for approval.")
+    await update.message.reply_text("⏳ Waiting for approval")
 
-# ✅ ADMIN APPROVE / REJECT
+# ================= ADMIN ACTION =================
 async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -183,7 +190,7 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=user_id,
-            text="✅ Deposit verified! VIP access granted 🔥"
+            text="✅ Approved! Signals unlocked 🔥"
         )
 
         await query.edit_message_caption("✅ APPROVED")
@@ -195,22 +202,22 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=user_id,
-            text="❌ Deposit not verified. Deposit $10–$50 and resend proof."
+            text="❌ Rejected. Deposit properly and resend proof."
         )
 
         await query.edit_message_caption("❌ REJECTED")
 
-# 📊 SIGNAL COMMAND
+# ================= SIGNAL =================
 async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if user_id not in verified_users:
-        await update.effective_message.reply_text("❌ Locked. Verify first.")
+        await update.message.reply_text("❌ Access denied")
         return
 
-    await update.effective_message.reply_text(generate_signal())
+    await update.message.reply_text(generate_signal())
 
-# 🤖 AUTO SIGNALS
+# ================= AUTO SIGNAL =================
 async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
     for user_id in verified_users:
         try:
@@ -226,78 +233,72 @@ async def auto_signals(context: ContextTypes.DEFAULT_TYPE):
         except:
             pass
 
-# 💰 LIVE PROFIT FEED
-profit_msgs = [
-    "💰 User just made $87 profit!",
-    "📈 VIP member earned $120 today!",
-    "🔥 Signal closed in profit!",
-    "⚡ Another win booked!"
-]
-
+# ================= PROFIT FEED =================
 async def live_profit_feed(context: ContextTypes.DEFAULT_TYPE):
+    msgs = [
+        "💰 User made $90",
+        "📈 Big win!",
+        "🔥 Profit booked",
+        "⚡ Signal hit"
+    ]
+
     for user_id in user_status:
         try:
             await context.bot.send_message(
                 chat_id=user_id,
-                text=random.choice(profit_msgs)
+                text=random.choice(msgs)
             )
         except:
             pass
 
-# 🔔 REMINDER SYSTEM
-async def reminder_system(context: ContextTypes.DEFAULT_TYPE):
+# ================= REMINDER =================
+async def reminder(context: ContextTypes.DEFAULT_TYPE):
     for user_id, status in user_status.items():
         try:
             if status == "joined":
                 await context.bot.send_message(
                     chat_id=user_id,
-                    text="⚠️ You haven’t activated VIP access.\n"
-                         "💰 Deposit $10–$50 now.\n"
-                         "⏳ Slots filling fast!"
+                    text="⚠️ Deposit pending ($10–$50)\nComplete now"
                 )
-
             elif status == "deposited":
                 await context.bot.send_message(
                     chat_id=user_id,
-                    text="⏳ Your proof is under review...\n"
-                         "🚀 Stay ready!"
+                    text="⏳ Under review..."
                 )
         except:
             pass
 
-# 📊 ADMIN STATS
+# ================= STATS =================
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
     total = len(user_status)
-    deposited = len([u for u in user_status if user_status[u] == "deposited"])
-    verified = len([u for u in user_status if user_status[u] == "verified"])
+    dep = len([u for u in user_status if user_status[u] == "deposited"])
+    ver = len([u for u in user_status if user_status[u] == "verified"])
 
     await update.message.reply_text(
-        f"📊 BOT STATS\n\n"
-        f"👥 Users: {total}\n"
-        f"💰 Deposited: {deposited}\n"
-        f"✅ Verified: {verified}"
+        f"Users: {total}\nDeposited: {dep}\nVerified: {ver}"
     )
 
-# 🚀 APP SETUP
+# ================= APP =================
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("signal", signal))
 app.add_handler(CommandHandler("stats", stats))
 
-app.add_handler(CallbackQueryHandler(button_handler))
+# IMPORTANT ORDER
 app.add_handler(CallbackQueryHandler(admin_decision, pattern="^(approve_|reject_)"))
+app.add_handler(CallbackQueryHandler(button_handler))
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
 
-# ⏰ AUTO TASKS
+# JOBS
 app.job_queue.run_repeating(auto_signals, interval=120, first=20)
 app.job_queue.run_repeating(live_profit_feed, interval=180, first=30)
-app.job_queue.run_repeating(reminder_system, interval=600, first=60)
+app.job_queue.run_repeating(reminder, interval=600, first=60)
 
 print("Bot running 🚀")
 app.run_polling()
