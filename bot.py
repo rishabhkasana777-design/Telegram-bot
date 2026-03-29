@@ -247,18 +247,50 @@ Setup: {setup}
 # ================= MANUAL =================
 async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    if update.effective_user.id not in verified_users:
-        await update.message.reply_text("No access")
-        return
+    user_id = update.effective_user.id
 
-    for pair in ALLOWED_PAIRS:
-        result = analyze_pair(pair)
-        if result:
-            await update.message.reply_text(f"Best pair: {pair}")
+    # 👑 ADMIN MODE
+    if user_id == ADMIN_ID:
+
+        if not context.args:
+            await update.message.reply_text("Usage: /signal EURUSD")
             return
 
-    await update.message.reply_text("No high probability trade")
+        pair = context.args[0].upper()
 
+        if pair not in ALLOWED_PAIRS:
+            await update.message.reply_text("❌ Pair not allowed")
+            return
+
+        result = analyze_pair(pair)
+
+        if not result:
+            await update.message.reply_text("❌ No strong setup for this pair")
+            return
+
+        p, direction, setup, conf = result
+
+        msg = f"""👑 ADMIN ANALYSIS
+
+Pair: {p}
+Timeframe: 5M
+
+Direction: {direction}
+Setup: {setup}
+
+Confidence: {conf}%
+
+⚡ Custom Pair Analysis"""
+
+        await update.message.reply_text(msg)
+        return
+
+    # 👥 USERS
+    if user_id not in verified_users:
+        await update.message.reply_text("❌ No access")
+        return
+
+    await update.message.reply_text("⚡ Signals are sent automatically")
 # ================= RUN =================
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
