@@ -15,7 +15,7 @@ from ta.momentum import RSIIndicator
 # ================= CONFIG =================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7221013939
-API_KEY = "YOUR_ALPHA_VANTAGE_KEY"
+API_KEY = "NFI1AOMYRK6CCCN5"
 
 INTRO_IMAGE = "https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png"
 SIGNAL_IMAGE = "https://img.sanishtech.com/u/1c0dc9fca14a1e2500306231240d93db.jpg"
@@ -43,7 +43,7 @@ def is_trading_time():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
-        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url="https://your-link.com")],
+        [InlineKeyboardButton("🚀 CREATE ACCOUNT", url="https://u3.shortink.io/smart/WxLmRQigGoQehq")],
         [InlineKeyboardButton("🆔 SUBMIT TRADER ID", callback_data="id")],
         [InlineKeyboardButton("📩 SUBMIT PROOF", callback_data="proof")]
     ]
@@ -51,18 +51,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = """🔥 Northvale Capital — Private Trading Community
 
 📊 AI Forex Signals (5M Sniper)
+🔥 Northvale Capital — Private Trading Community
 
+📊 One of the fastest-growing AI trading communities in Forex & Crypto.
 💼 What you get:
-📈 High accuracy  
-⚡ Fast execution  
-💰 $500–$1000/day potential  
-
-🚀 Steps:
-1️⃣ Register  
+📈 Advanced Signal System  
+💰 Potential income: $500–$1000/day  
+🤖 AI-assisted trading  
+🏆 Exclusive VIP access  
+🎯 Accurate entry points  
+💎 Why choose us?
+✅ High accuracy  
+✅ Beginner-friendly  
+✅ Daily opportunities  
+🚀 How to start:
+1️⃣ Register account  
 2️⃣ Deposit $10–$50  
 3️⃣ Submit proof  
-4️⃣ Get VIP  
-
+4️⃣ Get VIP access 
 ⚠️ Limited VIP access"""
 
     await update.message.reply_photo(
