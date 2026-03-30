@@ -245,7 +245,8 @@ Setup: {setup}
             break  # only BEST signal
 
 # ================= MANUAL ================
-    async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # ================= MANUAL =================
+async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if not context.args:
@@ -260,7 +261,7 @@ Setup: {setup}
 
     result = analyze_pair(pair)
 
-    # 👑 ADMIN MODE
+    # ADMIN MODE
     if user_id == ADMIN_ID:
 
         if result:
@@ -280,32 +281,10 @@ Setup: {setup}
 
 Confidence: {conf}%
 """
-
         await update.message.reply_text(msg)
         return
 
-    # 👥 USERS
-    if user_id not in verified_users:
-        await update.message.reply_text("❌ No access")
-        return
-
-    if not result:
-        await update.message.reply_text("❌ No strong setup for this pair")
-        return
-
-    p, direction, setup, conf = result
-
-    msg = f"""📊 SIGNAL
-
-Pair: {p}
-Direction: {direction}
-Setup: {setup}
-
-Confidence: {conf}%
-"""
-
-    await update.message.reply_text(msg)
-    # 👥 USERS (STRICT)
+    # USERS
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
         return
