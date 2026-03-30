@@ -246,11 +246,9 @@ Setup: {setup}
 
 # ================= MANUAL ================
    async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     user_id = update.effective_user.id
 
-    text = update.message.text.strip()  # FULL MESSAGE
-
+    text = update.message.text.strip()
     parts = text.split()
 
     if len(parts) < 2:
@@ -265,9 +263,8 @@ Setup: {setup}
 
     result = analyze_pair(pair)
 
-    # 👑 ADMIN MODE
+    # ADMIN MODE
     if user_id == ADMIN_ID:
-
         if result:
             p, direction, setup, conf = result
         else:
@@ -283,18 +280,17 @@ Timeframe: 5M
 Direction: {direction}
 Setup: {setup}
 
-Confidence: {conf}%
-"""
+Confidence: {conf}%"""
         await update.message.reply_text(msg)
         return
 
-    # 👥 USERS
+    # USERS
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
         return
 
     if not result:
-        await update.message.reply_text("❌ No strong setup for this pair")
+        await update.message.reply_text("❌ No strong setup")
         return
 
     p, direction, setup, conf = result
@@ -305,25 +301,38 @@ Pair: {p}
 Direction: {direction}
 Setup: {setup}
 
-Confidence: {conf}%
-"""
-
+Confidence: {conf}%"""
     await update.message.reply_text(msg)
 # ================= RUN =================
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+# ================= RUN =================
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("signal", signal))
+def main():
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(CallbackQueryHandler(admin, pattern="^(a_|r_)"))
-app.add_handler(CallbackQueryHandler(button))
+    # COMMANDS
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("signal", signal))
 
-app.add_handler(MessageHandler(filters.TEXT, handle_text))
-app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
+    # CALLBACKS
+    app.add_handler(CallbackQueryHandler(admin, pattern="^(a_|r_)"))
+    app.add_handler(CallbackQueryHandler(handle_text))
 
-# 🔥 AUTO SCANNER EVERY 5 minutes 
-if app.job_queue:
-    app.job_queue.run_repeating(auto_scan, interval=300, first=60)
+    # PROOF HANDLER
+    app.add_handler(MessageHandler(filters.PHOTO, handle_proof))
 
-print("Bot running 🚀")
-app.run_polling()
+    # AUTO SCANNER (SAFE VERSION)
+    try:
+        if app.job_queue:
+            app.job_queue.run_repeating(auto_scan, interval=300, first=60)
+            print("✅ Auto scanner started")
+        else:
+            print("⚠️ JobQueue not available")
+    except Exception as e:
+        print("❌ JobQueue Error:", e)
+
+    print("🚀 Bot running...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
