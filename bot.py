@@ -246,7 +246,6 @@ Setup: {setup}
 
 # ================= MANUAL ================
     async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     user_id = update.effective_user.id
 
     if not context.args:
