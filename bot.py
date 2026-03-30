@@ -263,7 +263,7 @@ Setup: {setup}
 
     result = analyze_pair(pair)
 
-    # ADMIN MODE
+    # 👑 ADMIN MODE (YOU)
     if user_id == ADMIN_ID:
         if result:
             p, direction, setup, conf = result
@@ -280,11 +280,12 @@ Timeframe: 5M
 Direction: {direction}
 Setup: {setup}
 
-Confidence: {conf}%"""
+📈 Confidence: {conf}%"""
+
         await update.message.reply_text(msg)
         return
 
-    # USERS
+    # 👥 NORMAL USERS
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
         return
@@ -297,13 +298,13 @@ Confidence: {conf}%"""
 
     msg = f"""📊 SIGNAL
 
-Pair: {p}
+Pair: {pair}
 Direction: {direction}
 Setup: {setup}
 
-Confidence: {conf}%"""
+📈 Confidence: {conf}%"""
+
     await update.message.reply_text(msg)
-# ================= RUN =================
 # ================= RUN =================
 
 def main():
