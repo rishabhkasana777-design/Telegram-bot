@@ -245,7 +245,7 @@ Setup: {setup}
             break  # only BEST signal
 
 # ================= MANUAL ================
-   async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if not context.args:
