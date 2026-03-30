@@ -15,7 +15,7 @@ from ta.momentum import RSIIndicator
 # ================= CONFIG =================
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7221013939
-API_KEY = "NFI1AOMYRK6CCCN5"
+API_KEY = JZP61BS8OMMNLL5D
 
 INTRO_IMAGE = "https://cdn.phototourl.com/free/2026-03-28-6532c40e-f04e-485b-8255-e2b361561fb5.png"
 SIGNAL_IMAGE = "https://img.sanishtech.com/u/1c0dc9fca14a1e2500306231240d93db.jpg"
