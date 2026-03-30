@@ -248,14 +248,11 @@ Setup: {setup}
    async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    text = update.message.text.strip()
-    parts = text.split()
-
-    if len(parts) < 2:
+    if not context.args:
         await update.message.reply_text("Usage: /signal EURUSD")
         return
 
-    pair = parts[1].upper()
+    pair = context.args[0].upper()
 
     if pair not in ALLOWED_PAIRS:
         await update.message.reply_text("❌ Pair not allowed")
@@ -263,13 +260,13 @@ Setup: {setup}
 
     result = analyze_pair(pair)
 
-    # 👑 ADMIN MODE (YOU)
+    # ADMIN MODE
     if user_id == ADMIN_ID:
         if result:
             p, direction, setup, conf = result
         else:
-            direction = get_trend_direction(pair)
-            setup = "TREND (Fallback)"
+            direction = "TREND"
+            setup = "Fallback"
             conf = 65
 
         msg = f"""👑 ADMIN SIGNAL
@@ -285,7 +282,7 @@ Setup: {setup}
         await update.message.reply_text(msg)
         return
 
-    # 👥 NORMAL USERS
+    # NORMAL USERS
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
         return
