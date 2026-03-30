@@ -245,11 +245,6 @@ Setup: {setup}
             break  # only BEST signal
 
 # ================= MANUAL =================
-async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    user_id = update.effective_user.id
-
-    # 👑 ADMIN MODE
     async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_id = update.effective_user.id
@@ -266,13 +261,12 @@ async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     result = analyze_pair(pair)
 
-    # 👑 ADMIN MODE (ALWAYS GIVE SIGNAL)
+    # 👑 ADMIN MODE
     if user_id == ADMIN_ID:
 
         if result:
             p, direction, setup, conf = result
         else:
-            # 🔥 FALLBACK SIGNAL
             direction = get_trend_direction(pair)
             setup = "TREND (Fallback)"
             conf = 65
@@ -287,9 +281,31 @@ Setup: {setup}
 
 Confidence: {conf}%
 """
+
         await update.message.reply_text(msg)
         return
 
+    # 👥 USERS
+    if user_id not in verified_users:
+        await update.message.reply_text("❌ No access")
+        return
+
+    if not result:
+        await update.message.reply_text("❌ No strong setup for this pair")
+        return
+
+    p, direction, setup, conf = result
+
+    msg = f"""📊 SIGNAL
+
+Pair: {p}
+Direction: {direction}
+Setup: {setup}
+
+Confidence: {conf}%
+"""
+
+    await update.message.reply_text(msg)
     # 👥 USERS (STRICT)
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
