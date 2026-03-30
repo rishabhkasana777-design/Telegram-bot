@@ -245,15 +245,19 @@ Setup: {setup}
             break  # only BEST signal
 
 # ================= MANUAL ================
-    # ================= MANUAL =================
-async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+   async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     user_id = update.effective_user.id
 
-    if not context.args:
+    text = update.message.text.strip()  # FULL MESSAGE
+
+    parts = text.split()
+
+    if len(parts) < 2:
         await update.message.reply_text("Usage: /signal EURUSD")
         return
 
-    pair = context.args[0].upper()
+    pair = parts[1].upper()
 
     if pair not in ALLOWED_PAIRS:
         await update.message.reply_text("❌ Pair not allowed")
@@ -261,7 +265,7 @@ async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     result = analyze_pair(pair)
 
-    # ADMIN MODE
+    # 👑 ADMIN MODE
     if user_id == ADMIN_ID:
 
         if result:
@@ -284,7 +288,7 @@ Confidence: {conf}%
         await update.message.reply_text(msg)
         return
 
-    # USERS
+    # 👥 USERS
     if user_id not in verified_users:
         await update.message.reply_text("❌ No access")
         return
@@ -303,6 +307,7 @@ Setup: {setup}
 
 Confidence: {conf}%
 """
+
     await update.message.reply_text(msg)
 # ================= RUN =================
 app = ApplicationBuilder().token(BOT_TOKEN).build()
